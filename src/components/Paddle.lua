@@ -5,7 +5,7 @@
     @author Andrei-Paul Ionescu.
 ]]
 
--- Inform the environment that the Paddle indicates a class.
+-- Inform the environment that Paddle indicates a class.
 Paddle = Class{}
 
 --[[
