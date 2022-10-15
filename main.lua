@@ -16,6 +16,10 @@ DEFAULT_PADDLE_SPEED = 200
 -- Define a global constant which contains the title of the view, i.e. the title of the game in this case.
 VIEW_TITLE = "Pong"
 
+--Define a set of global constants which contain the label of the states in which our state machine can 
+-- be found.
+PLAYING_STATE = 'playing'
+PAUSED_STATE  = 'paused'
 -- Load the required external libraries.
 push = require "./libraries/push"
 Class = require './libraries/class' -- This library will allow us to interact with class in a Python like manner.
@@ -23,6 +27,10 @@ Class = require './libraries/class' -- This library will allow us to interact wi
 -- Import the required classes.
 require './src/components/Paddle'
 require '/src/components/Ball'
+
+-- Define a global variable which keeps track of the current state of the game, i.e. whether we are playing 
+-- or we are pausing the game, by default this value is initialised with the paused state.
+local programState = 'paused'
 
 
 --[[
@@ -36,6 +44,14 @@ function love.keypressed(key)
     -- If the user has pressed the escape key, i.e. ESC on the majority of keyboards, then close the program.
     if key == "escape" then
         love.event.quit()
+    end
+    
+    if key == "return" or key == "enter" then 
+        if programState == PAUSED_STATE then 
+            programState = PLAYING_STATE
+        elseif programState == PLAYING_STATE then 
+            programState = PAUSED_STATE
+        end
     end
 end
 
@@ -85,28 +101,30 @@ end
 ]]
 function love.update(deltaTime)
 
-    -- Intercept keyboard input that is linked with the left player's paddle.
-    if love.keyboard.isDown('w') then
-        leftSidePlayer.deltaY = -DEFAULT_PADDLE_SPEED
-    elseif love.keyboard.isDown('s') then
-        leftSidePlayer.deltaY = DEFAULT_PADDLE_SPEED
-    else
-        leftSidePlayer.deltaY = 0
+    if programState == PLAYING_STATE then
+        -- Intercept keyboard input that is linked with the left player's paddle.
+        if love.keyboard.isDown('w') then
+            leftSidePlayer.deltaY = -DEFAULT_PADDLE_SPEED
+        elseif love.keyboard.isDown('s') then
+            leftSidePlayer.deltaY = DEFAULT_PADDLE_SPEED
+        else
+            leftSidePlayer.deltaY = 0
+        end
+
+        -- Intercept keyboard input that is linked with the right player's paddle.
+        if love.keyboard.isDown('up') then
+            rightSidePlayer.deltaY = -DEFAULT_PADDLE_SPEED
+        elseif love.keyboard.isDown('down') then
+            rightSidePlayer.deltaY = DEFAULT_PADDLE_SPEED
+        else
+            rightSidePlayer.deltaY = 0
+        end
+
+
+        leftSidePlayer:update(deltaTime)
+        rightSidePlayer:update(deltaTime)
+        ball:update(deltaTime)
     end
-
-    -- Intercept keyboard input that is linked with the right player's paddle.
-    if love.keyboard.isDown('up') then
-        rightSidePlayer.deltaY = -DEFAULT_PADDLE_SPEED
-    elseif love.keyboard.isDown('down') then
-        rightSidePlayer.deltaY = DEFAULT_PADDLE_SPEED
-    else
-        rightSidePlayer.deltaY = 0
-    end
-
-
-    leftSidePlayer:update(deltaTime)
-    rightSidePlayer:update(deltaTime)
-    ball:update(deltaTime)
 end
 
 --[[
@@ -122,9 +140,13 @@ function love.draw()
     -- been triggered within the program.
 
     -- Begin rendering.
-    --push:apply('start')
+    -- push:start()
 
-    love.graphics.printf('Hello Pong!', 0, DEFAULT_WINDOW_HEIGHT / 2 - 6, DEFAULT_WINDOW_WIDTH, 'center')
+    if programState == PAUSED_STATE then 
+        love.graphics.printf('Game is paused!', 0, DEFAULT_WINDOW_HEIGHT / 2 - 6, DEFAULT_WINDOW_WIDTH, 'center')
+    elseif programState == PLAYING_STATE then
+        love.graphics.printf('Game is running!', 0, DEFAULT_WINDOW_HEIGHT / 2 - 6, DEFAULT_WINDOW_WIDTH, 'center')
+    end
 
     -- Draw the paddles to the screen in their current state.
     leftSidePlayer:draw()
@@ -133,6 +155,19 @@ function love.draw()
     -- Draw the ball to the screen in its current state.
     ball:draw()
 
+    -- Invoke the helper method which will collate to the screen the current value of the FPS attribute.
+    displayFPS()
+
     -- End rendering.
-    --push:apply('end')
+    -- push:finish()
+end
+
+--[[
+    This here routine draws the current value of the FPS attribute in the left up corner of the screen.
+
+    @author Andrei-Paul Ionescu.
+]]
+function displayFPS()
+    love.graphics.setColor(0, 255, 0, 255)
+    love.graphics.print('FPS: ' .. tostring(love.timer.getFPS()), 10, 10)
 end

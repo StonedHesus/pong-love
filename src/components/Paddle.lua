@@ -33,7 +33,7 @@ end
 --[[
 
     @param deltaTime; a numerical integer value which indicates the amount of time that elapsed betwixt two 
-    consecutives frames.
+    consecutive frames.
 
     This here method updates the y-coordinate value of the paddle. 
     Since in the game of pong, the user controlled objects only move on the y-axis, we will have to verify
@@ -58,8 +58,14 @@ end
 
 --[[
 
+    This here routine utilises Löve2D's framework API so as to tell to the framework 
+    that we wish to draw our current ball object to the screen.
+    In order to achieve this we utilise the rectangle() function which is found within the graphics module.
+
+
     @author Andrei-Paul Ionescu.
 ]]
 function Paddle:draw()
+    love.graphics.setColor(255, 255, 255, 255)
     love.graphics.rectangle('fill', self.x, self.y, self.width, self.height)
 end
