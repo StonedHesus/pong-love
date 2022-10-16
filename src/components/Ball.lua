@@ -55,8 +55,8 @@ function Ball:reset()
     self.x = DEFAULT_WINDOW_WIDTH / 2 - 20
     self.y = DEFAULT_WINDOW_WIDTH / 2 - 20
 
-    self.deltaX = 0
-    self.deltaY = 0
+    self.deltaX = math.random(2) == 1 and -250 or 250
+    self.deltaY = math.random(-300, 300)
 end
 
 --[[
@@ -70,6 +70,21 @@ end
     @author Andrei-Paul Ionescu.
 ]]
 function Ball:collides(paddle)
+
+    -- Determine whether any collision occurs which involve the top edges.
+    -- If no collision occur between those edges then this test yields the boolean value false.
+    if self.x > paddle.x + paddle.width or paddle.x > self.x + self.radius then
+        return false
+    end
+
+    -- Determine whether any collision occurs which involve the bottom edges.
+    -- If no collision occur between those edges then this test yields the boolean value false.
+    if self.y > paddle.y + paddle.height or paddle.y > self.y + self.radius then
+        return false
+    end
+
+    -- If the previous two conditionals failed, it implies that a collision took place,
+    -- hence in this case we yield the true boolean value.
     return true
 end
 
