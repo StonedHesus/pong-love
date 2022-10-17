@@ -11,6 +11,9 @@
 -- create the initial view of the software.
 DEFAULT_WINDOW_WIDTH  = 1280
 DEFAULT_WINDOW_HEIGHT = 720
+VIRTUAL_WINDOW_WIDTH  = 480
+VIRTUAL_WINDOW_HEIGHT = 320
+
 DEFAULT_PADDLE_SPEED = 200
 
 -- Define a global constant which contains the title of the view, i.e. the title of the game in this case.
@@ -90,13 +93,13 @@ function love.load()
 
     -- Define the initial behaviour of the screen.
     -- When launched, the size of the screen ought to be the one indicated by the global constant values.
-    love.window.setMode(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, {
+    push:setupScreen(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, {
 
         -- Inside the third argument, which is a table type data collection, we indicate that 
         -- the view should not be launched in full-screen mode, that it should not be resisable, 
         -- and that it ought to vertically sync itself with the user's monitor.
         fullscreen = false,
-        resizable  = false,
+        resizable  = true,
         vsync      = true
     })
 
@@ -232,9 +235,11 @@ function love.draw()
     -- been triggered within the program.
 
     -- Begin rendering.
-    -- push:start()
+    push:start()
 
     love.graphics.setFont(stateFont)
+
+    love.graphics.setColor(0, 255, 0, 255)
 
     if programState == PAUSED_STATE then 
         love.graphics.printf('Game is paused!', 0, DEFAULT_WINDOW_HEIGHT / 2 - 6, DEFAULT_WINDOW_WIDTH, 'center')
@@ -261,6 +266,9 @@ function love.draw()
     -- Draw the ball to the screen in its current state.
     ball:draw()
 
+    -- Invoke the helper method which will draw to the screen the diveder blocks.
+    drawDivider()
+
     -- Invoke the helper method which will collate to the screen the current score of each player.
     displayScores()
 
@@ -268,8 +276,13 @@ function love.draw()
     displayFPS()
 
     -- End rendering.
-    -- push:finish()
+    push:finish()
 end
+
+function love.resize(weight, height)
+    push:resize(weight, height)
+end
+
 
 --[[
 
@@ -278,6 +291,27 @@ end
 function displayScores()
     displayScore(leftSidePlayerScore, 'left')
     displayScore(rightSidePlayerScore, 'right')
+end
+--[[
+    This here method is yet another auxiliary/helper routine whose sole role is to refactor some 
+    of the logic so as to obtain a clearer compilation unit.
+
+    The role of this method is to draw the dividers that separate the two portions of the court.
+    These diveders are plain rectangles separated by spaces from one another.
+
+    @author Andrei-Paul Ionescu.
+]]
+function drawDivider()
+
+    local gap = 80
+    local yValue = 0
+
+    while(yValue < DEFAULT_WINDOW_HEIGHT)
+    do       
+        love.graphics.rectangle('fill', DEFAULT_WINDOW_WIDTH/2 - 20, yValue, 40, 80)
+        yValue = yValue + 80 + gap
+    end
+
 end
 
 --[[
