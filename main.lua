@@ -11,8 +11,6 @@
 -- create the initial view of the software.
 DEFAULT_WINDOW_WIDTH  = 1280
 DEFAULT_WINDOW_HEIGHT = 720
-VIRTUAL_WINDOW_WIDTH  = 480
-VIRTUAL_WINDOW_HEIGHT = 320
 
 DEFAULT_PADDLE_SPEED = 200
 
@@ -91,6 +89,16 @@ function love.load()
 
      scoreFont     = love.graphics.newFont('fonts/classic-arcade-font.ttf', 160)
 
+    -- Define a new table which will contain the audio object which will be utilised in the application.
+    -- We chose to store in the table, so as to compact the code a tad; we also enjoy the fact that by placing 
+    -- them within a table, the time for accessing them will be essentially constant due to the hashing nature of the data type.
+    sounds = {
+        ['paddle_hit'] = love.audio.newSource('sounds/paddle_hit_sound.wav', 'static'),
+        ['score_sound'] = love.audio.newSource('sounds/score_sound.wav', 'static'),
+        ['wall_hit'] = love.audio.newSource('sounds/wall_hit_sound.wav', 'static')
+    }
+
+
     -- Define the initial behaviour of the screen.
     -- When launched, the size of the screen ought to be the one indicated by the global constant values.
     push:setupScreen(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, {
@@ -146,6 +154,8 @@ function love.update(deltaTime)
             else
                 ball.deltaY = math.random(10, 150)
             end
+
+            sounds['paddle_hit']:play()
         end
 
         -- Detect whether or not the ball collides with the right side paddle.
@@ -170,30 +180,33 @@ function love.update(deltaTime)
             else
                 ball.deltaY = math.random(10, 150)
             end
+
+            sounds['paddle_hit']:play()
         end
 
         -- Respond to what happens when the ball hits the x-axis oriented edges of the court.
         if ball.y <= 0 then
             ball.y = 0
             ball.deltaY = -ball.deltaY
+            sounds['wall_hit']:play()
         end
-        -- FIXME: DETERMINE WHY THE BALL JUST DISAPPEARS WHEN IT ENTERS IN CONTACT WITH THE
-        --        LOWER PORTION OF THE SCREEN.
-        if ball.y >= DEFAULT_WINDOW_HEIGHT - 40 then
-            ball.y = DEFAULT_WINDOW_WIDTH - 40
+
+        if ball.y >= push:getHeight() - 40 then
+            ball.y = 720 - 40
             ball.deltaY = -ball.deltaY
+            sounds['wall_hit']:play()
         end
 
         -- Respond to the scenarios when the ball reaches the left or the right edges of the screen.
         if ball.x < 0 then 
-            
             rightSidePlayerScore = rightSidePlayerScore + 1
+            sounds['score_sound']:play()
             ball:reset()
         end
 
         if ball.x > DEFAULT_WINDOW_WIDTH then 
-            
             leftSidePlayerScore = leftSidePlayerScore + 1
+            sounds['score_sound']:play()
             ball:reset()
         end
 
@@ -258,14 +271,6 @@ function love.draw()
         programState = VICTORY_STATE
     end
 
-
-    -- Draw the paddles to the screen in their current state.
-    leftSidePlayer:draw()
-    rightSidePlayer:draw()
-
-    -- Draw the ball to the screen in its current state.
-    ball:draw()
-
     -- Invoke the helper method which will draw to the screen the diveder blocks.
     drawDivider()
 
@@ -275,10 +280,20 @@ function love.draw()
     -- Invoke the helper method which will collate to the screen the current value of the FPS attribute.
     displayFPS()
 
+    -- Draw the paddles to the screen in their current state.
+    leftSidePlayer:draw()
+    rightSidePlayer:draw()
+    
+    -- Draw the ball to the screen in its current state.
+    ball:draw()
+    
     -- End rendering.
     push:finish()
 end
+--[[
 
+    @author Andrei-Paul Ionescu.
+]]
 function love.resize(weight, height)
     push:resize(weight, height)
 end
@@ -306,6 +321,8 @@ function drawDivider()
     local gap = 80
     local yValue = 0
 
+    love.graphics.setColor(0, 220, 220, 255)
+
     while(yValue < DEFAULT_WINDOW_HEIGHT)
     do       
         love.graphics.rectangle('fill', DEFAULT_WINDOW_WIDTH/2 - 20, yValue, 40, 80)
@@ -328,6 +345,7 @@ end
 function displayScore(score, player)
     -- Set the current rendering font to be the font defined in the scoreFont variable.
     love.graphics.setFont(scoreFont)
+    love.graphics.setColor(255, 255, 255, 255)
     
     -- Determine for which player we are going to print the score.
     if player == 'left' then 
